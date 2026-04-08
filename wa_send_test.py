@@ -120,22 +120,28 @@ def generate_friendly_message(weather_summary: str, name: str) -> str:
     """Use Claude to turn raw weather data into a friendly WhatsApp message."""
     client = anthropic.Anthropic()
 
-    prompt = f"""You are a friendly weather assistant writing a daily WhatsApp message.
-Based on this Philadelphia weather data, write a short, warm, conversational message (2-4 sentences).
-Start with "Hi {name}," then today's date and day.
-Describe what the day will feel like (morning vs afternoon), mention rain if relevant, and suggest what to wear or bring.
-Keep it under 200 characters so it fits neatly in a WhatsApp message. No emojis, no bullet points — just flowing text.
+    prompt = f"""You are a friendly weather assistant writing a daily WhatsApp message for Philadelphia.
+Write a warm, conversational message addressed to {name}.
+
+Rules:
+- Start with "Hi {name} 👋" then the date (e.g. Tuesday, April 7)
+- Use WhatsApp formatting: *bold* for key info, _italic_ for tips, emojis are welcome
+- Structure it with a short newline between morning and afternoon sections
+- Mention what to wear or bring
+- Hard limit: 1024 characters total (including spaces and newlines)
+- Do NOT use markdown (no **, no #) — only WhatsApp formatting (*bold*, _italic_)
 
 Weather data:
 {weather_summary}"""
 
     message = client.messages.create(
         model="claude-sonnet-4-6",
-        max_tokens=300,
+        max_tokens=400,
         messages=[{"role": "user", "content": prompt}],
     )
 
-    return message.content[0].text.strip()
+    text = message.content[0].text.strip()
+    return text[:1024]  # hard cap just in case
 
 
 def main() -> None:
@@ -151,7 +157,7 @@ def main() -> None:
             name="daily_weather",
             language=TemplateLanguage.ENGLISH,
             params=[
-                BodyText.params(weather_today=friendly_message),
+                BodyText.params(friendly_message),
             ],
         )
         print(f"Sent to {recipient['name']} ({recipient['number']})")
