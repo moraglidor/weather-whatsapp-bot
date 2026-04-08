@@ -138,8 +138,9 @@ Write a short, clear, and summarized message addressed to {name}.
 Rules:
 - Start with "Hi {name} 👋" then the date (e.g. Tuesday, April 7)
 - 3-4 lines max — keep it tight and scannable
-- One line for morning, one for afternoon/evening, one clothing tip, one short sentence about tomorrow
-- Use WhatsApp formatting: *bold* for temperatures, emojis are welcome but keep them minimal
+- Cover morning, afternoon, clothing tip, and tomorrow — all in one flowing paragraph
+- Use emojis to break it up visually, *bold* for key temperatures
+- Do NOT use newlines or markdown — write it as a single continuous paragraph
 - Do NOT use markdown (no **, no #) — only WhatsApp formatting (*bold*, _italic_)
 - Max 400 characters
 
@@ -153,7 +154,9 @@ Weather data:
     )
 
     text = message.content[0].text.strip()
-    return text[:1024]  # hard cap just in case
+    # Meta doesn't allow newlines in template parameters — replace with space
+    text = " ".join(text.splitlines())
+    return text[:1024]
 
 
 def main() -> None:
@@ -169,7 +172,7 @@ def main() -> None:
             name="daily_weather",
             language=TemplateLanguage.ENGLISH,
             params=[
-                BodyText.params(friendly_message),
+                BodyText.params(weather_today=friendly_message),
             ],
         )
         print(f"Sent to {recipient['name']} ({recipient['number']})")
