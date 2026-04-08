@@ -116,12 +116,13 @@ def build_weather_summary(data: dict) -> str:
     return "\n".join(s for s in sections if s is not None)
 
 
-def generate_friendly_message(weather_summary: str) -> str:
+def generate_friendly_message(weather_summary: str, name: str) -> str:
     """Use Claude to turn raw weather data into a friendly WhatsApp message."""
     client = anthropic.Anthropic()
 
     prompt = f"""You are a friendly weather assistant writing a daily WhatsApp message.
-Based on this Philadelphia weather data, write a short, warm, conversational message (2-4 sentences). Start with today's date and day.
+Based on this Philadelphia weather data, write a short, warm, conversational message (2-4 sentences).
+Start with "Hi {name}," then today's date and day.
 Describe what the day will feel like (morning vs afternoon), mention rain if relevant, and suggest what to wear or bring.
 Keep it under 200 characters so it fits neatly in a WhatsApp message. No emojis, no bullet points — just flowing text.
 
@@ -140,12 +141,11 @@ Weather data:
 def main() -> None:
     data = get_hourly_forecast(PHILADELPHIA_LAT, PHILADELPHIA_LON)
     weather_summary = build_weather_summary(data)
-    friendly_message = generate_friendly_message(weather_summary)
-
     print(f"Weather summary:\n{weather_summary}\n")
-    print(f"Message to send:\n{friendly_message}\n")
 
     for recipient in RECIPIENTS:
+        friendly_message = generate_friendly_message(weather_summary, recipient["name"])
+        print(f"Message to {recipient['name']}:\n{friendly_message}\n")
         wa.send_template(
             to=recipient["number"],
             name="daily_weather",
