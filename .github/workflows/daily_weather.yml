@@ -1,0 +1,29 @@
+name: Daily Weather WhatsApp
+
+on:
+  schedule:
+    - cron: "0 11 * * *"  # 7am ET = 11:00 UTC
+  workflow_dispatch:       # allows manual run from GitHub UI
+
+jobs:
+  send-weather:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install httpx anthropic pywa
+
+      - name: Send weather message
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          WA_TOKEN: ${{ secrets.WA_TOKEN }}
+          WA_PHONE_NUMBER_ID: ${{ secrets.WA_PHONE_NUMBER_ID }}
+        run: python wa_send_test.py
