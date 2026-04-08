@@ -9,8 +9,7 @@ PHONE_NUMBER_ID = os.environ["WA_PHONE_NUMBER_ID"]
 
 RECIPIENTS = [
     {"name": "Lidor", "number": "972527730595"},
-    # Add more recipients here:
-    # {"name": "Jane", "number": "972501234567"},
+    {"name": "Amir", "number": "972523830553"},
 ]
 
 PHILADELPHIA_LAT = 39.9526
