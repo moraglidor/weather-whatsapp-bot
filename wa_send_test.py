@@ -60,13 +60,14 @@ def get_hourly_forecast(lat: float, lon: float, tz: str = "America/New_York") ->
             "windspeed_10m",
         ]),
         "daily": ",".join([
+            "weathercode",
             "temperature_2m_max",
             "temperature_2m_min",
             "precipitation_sum",
             "sunrise",
             "sunset",
         ]),
-        "forecast_days": 1,
+        "forecast_days": 2,
     }
 
     r = httpx.get(FORECAST_URL, params=params, timeout=20)
@@ -85,6 +86,12 @@ def build_weather_summary(data: dict) -> str:
     precip_total = daily["precipitation_sum"][0]
     sunrise = daily["sunrise"][0]
     sunset = daily["sunset"][0]
+
+    tomorrow_date = daily["time"][1]
+    tomorrow_tmax = daily["temperature_2m_max"][1]
+    tomorrow_tmin = daily["temperature_2m_min"][1]
+    tomorrow_precip = daily["precipitation_sum"][1]
+    tomorrow_code = daily["weathercode"][1] if "weathercode" in daily else None
 
     # Extract key hours: morning (7-9), midday (12), afternoon (15-17), evening (20)
     times = hourly["time"]
@@ -113,7 +120,13 @@ def build_weather_summary(data: dict) -> str:
         hour_data(18),
         hour_data(21),
     ]
-    return "\n".join(s for s in sections if s is not None)
+    tomorrow_desc = WEATHER_CODE.get(tomorrow_code, "Unknown") if tomorrow_code is not None else "Unknown"
+    tomorrow_section = (
+        f"\nTomorrow ({tomorrow_date}): {tomorrow_desc}, "
+        f"High {tomorrow_tmax}°C / Low {tomorrow_tmin}°C, Precip {tomorrow_precip} mm"
+    )
+
+    return "\n".join(s for s in sections if s is not None) + tomorrow_section
 
 
 def generate_friendly_message(weather_summary: str, name: str) -> str:
@@ -121,15 +134,15 @@ def generate_friendly_message(weather_summary: str, name: str) -> str:
     client = anthropic.Anthropic()
 
     prompt = f"""You are a friendly weather assistant writing a daily WhatsApp message for Philadelphia.
-Write a warm, conversational message addressed to {name}.
+Write a short, clear, and summarized message addressed to {name}.
 
 Rules:
 - Start with "Hi {name} 👋" then the date (e.g. Tuesday, April 7)
-- Use WhatsApp formatting: *bold* for key info, _italic_ for tips, emojis are welcome
-- Structure it with a short newline between morning and afternoon sections
-- Mention what to wear or bring
-- Hard limit: 1024 characters total (including spaces and newlines)
+- 3-4 lines max — keep it tight and scannable
+- One line for morning, one for afternoon/evening, one clothing tip, one short sentence about tomorrow
+- Use WhatsApp formatting: *bold* for temperatures, emojis are welcome but keep them minimal
 - Do NOT use markdown (no **, no #) — only WhatsApp formatting (*bold*, _italic_)
+- Max 400 characters
 
 Weather data:
 {weather_summary}"""
