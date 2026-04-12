@@ -80,11 +80,7 @@ def build_weather_summary(data: dict) -> str:
     hourly = data["hourly"]
 
     date = daily["time"][0]
-    tmax = daily["temperature_2m_max"][0]
-    tmin = daily["temperature_2m_min"][0]
     precip_total = daily["precipitation_sum"][0]
-    sunrise = daily["sunrise"][0]
-    sunset = daily["sunset"][0]
 
     tomorrow_date = daily["time"][1]
     tomorrow_tmax = daily["temperature_2m_max"][1]
@@ -108,16 +104,14 @@ def build_weather_summary(data: dict) -> str:
     sections = [
         f"Date: {date}",
         f"Philadelphia, PA",
-        f"High: {tmax}°C | Low: {tmin}°C | Total precip: {precip_total} mm",
-        f"Sunrise: {sunrise} | Sunset: {sunset}",
+        f"Total precip: {precip_total} mm",
         "",
-        "Hourly breakdown:",
-        hour_data(7),
-        hour_data(9),
+        "Relevant hours:",
+        hour_data(8),
         hour_data(12),
         hour_data(15),
         hour_data(18),
-        hour_data(21),
+        hour_data(22),
     ]
     tomorrow_desc = WEATHER_CODE.get(tomorrow_code, "Unknown") if tomorrow_code is not None else "Unknown"
     tomorrow_section = (
@@ -132,17 +126,14 @@ def generate_friendly_message(weather_summary: str, name: str) -> str:
     """Use Claude to turn raw weather data into a friendly WhatsApp message."""
     client = anthropic.Anthropic()
 
-    prompt = f"""You are a friendly weather assistant writing a daily WhatsApp message for Philadelphia.
-Write a short, clear, and summarized message addressed to {name}.
+    prompt = f"""You are a weather assistant writing a short daily WhatsApp message for Philadelphia.
 
 Rules:
-- Start with "Hi {name} 👋" then the date (e.g. Tuesday, April 7)
-- 3-4 lines max — keep it tight and scannable
-- Cover morning, afternoon, clothing tip, and tomorrow — all in one flowing paragraph
-- Use emojis to break it up visually, *bold* for key temperatures
-- Do NOT use newlines or markdown — write it as a single continuous paragraph
-- Do NOT use markdown (no **, no #) — only WhatsApp formatting (*bold*, _italic_)
-- Max 400 characters
+- Start with "Hi {name}," then follow this exact structure:
+  Morning - [temp + condition], Noon - [temp + condition], Afternoon - [temp + condition], Evening - [temp + condition]. Tomorrow - [one short sentence].
+- Example: "Hi Lidor, Morning - chilly 10c strong wind, Noon - warms to 15c dry, Afternoon - 15c sunny, Evening - gets cold 12c. Tomorrow will be colder."
+- Plain text only, no emojis, no bold, no formatting, no newlines
+- Max 300 characters total
 
 Weather data:
 {weather_summary}"""
