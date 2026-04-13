@@ -99,7 +99,8 @@ def build_weather_summary(data: dict) -> str:
         if idx is None:
             return ""
         desc = WEATHER_CODE.get(codes[idx], "Unknown")
-        return f"{hour}:00 → {temps[idx]}°C, {desc}, {precip_prob[idx]}% rain chance"
+        wind = hourly["windspeed_10m"][idx]
+        return f"{hour}:00 → {temps[idx]}°C, {desc}, wind {wind} km/h, {precip_prob[idx]}% rain chance"
 
     sections = [
         f"Date: {date}",
@@ -131,7 +132,8 @@ def generate_friendly_message(weather_summary: str, name: str) -> str:
 Rules:
 - Start with "Hi {name}," then follow this exact structure:
   Morning - [temp + condition], Noon - [temp + condition], Afternoon - [temp + condition], Evening - [temp + condition]. Tomorrow - [one short sentence].
-- Example: "Hi Lidor, Morning - chilly 10c strong wind, Noon - warms to 15c dry, Afternoon - 15c sunny, Evening - gets cold 12c. Tomorrow will be colder."
+- Example: "Hi Lidor, Morning - chilly 10c strong wind, Noon - warms to 15c light breeze dry, Afternoon - 15c sunny calm, Evening - gets cold 12c windy. Tomorrow will be colder."
+- Always mention wind if it's notable (above 20 km/h), otherwise skip it
 - Plain text only, no emojis, no bold, no formatting, no newlines
 - Max 300 characters total
 
