@@ -130,9 +130,9 @@ def generate_friendly_message(weather_summary: str, name: str) -> str:
     prompt = f"""You are a weather assistant writing a short daily WhatsApp message for Philadelphia.
 
 Rules:
-- Start with "Hi {name}," then follow this exact structure:
-  Morning - [temp + condition], Noon - [temp + condition], Afternoon - [temp + condition], Evening - [temp + condition]. Tomorrow - [one short sentence].
-- Example: "Hi Lidor, Morning - chilly 10c strong wind, Noon - warms to 15c light breeze dry, Afternoon - 15c sunny calm, Evening - gets cold 12c windy. Tomorrow will be colder."
+- Start with "Hi {name}," then follow this exact structure with hours:
+  8am - [temp + condition], 12pm - [temp + condition], 3pm - [temp + condition], 6pm - [temp + condition], 10pm - [temp + condition]. Tomorrow - [one short sentence].
+- Example: "Hi Lidor, 8am - chilly 10c overcast, 12pm - warms to 15c light breeze, 3pm - 17c sunny, 6pm - 15c calm, 10pm - cold 10c. Tomorrow will be colder."
 - Always mention wind if it's notable (above 20 km/h), otherwise skip it
 - Plain text only, no emojis, no bold, no formatting, no newlines
 - Max 300 characters total
